@@ -17,7 +17,7 @@ function App() {
 		const userId = localStorage.getItem("id");
 		if (userId) {
 			// Si está logeado, obtén el historial de chat
-			fetch(`https://studia-backend.vercel.app/getchat/${userId}`)
+			fetch(`https://speech-recognition-trivia-backend.vercel.app/getchat/${userId}`)
 				.then((response) => response.json())
 				.then((data) => {
 					if (data.success) {
@@ -77,7 +77,7 @@ function App() {
 				if (userId) {
 					try {
 						// Enviar el nuevo mensaje al backend para actualizar la base de datos
-						const response = fetch(`https://studia-backend.vercel.app/savechat`, {
+						const response = fetch(`https://speech-recognition-trivia-backend.vercel.app/savechat`, {
 							method: "POST",
 							headers: {
 								"Content-Type": "application/json",
