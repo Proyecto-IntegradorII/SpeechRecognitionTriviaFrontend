@@ -3,8 +3,7 @@ import OpenAI from "openai";
 import "./index.css";
 import MyAudioVisualaizer from "./pages/visualaizers/audio";
 import canvasImage from '../src/images/canvas.png'; // Import your image
-import { NotificationDialog } from "./components/NotificationDialog";
-import { DialogWithForm } from "./components/DialogWithForm";
+
 const openai = new OpenAI({
 	apiKey: process.env.REACT_APP_GPT_KEY,
 	dangerouslyAllowBrowser: true,
@@ -138,10 +137,7 @@ function App() {
 		<section className="container bg-white mx-auto p-5 mt-12 xl:px-64 fixed inset-0">
 			<div className="items-center  bg-white w-full h-full flex flex-col">
 				<div className="gap-4 bg-white-200 p-0 pb-8 flex-grow overflow-auto xl:w-[800px]">
-					{showingNotificationDialog &&					
-						<NotificationDialog/>
-					}
-					<DialogWithForm> </DialogWithForm>
+
 					<div className="w-full mt-4 h-auto bg-white justify-center  flex">
 						<img src={canvasImage} alt="Canvas image" className="w-auto mt-4 h-auto p-8" />
 					</div>
