@@ -2,7 +2,7 @@
 //Usar Authorization: `Bearer ${token}` en el header de los fetch
 
 //Usar API_URL de vercel antes de hacer pull request a main para hacer el despliegue
-const API_URL = "https://studia-backend.vercel.app";
+const API_URL = "https://speech-recognition-trivia-backend.vercel.app";
 //Usar la API_URL del puerto 9000 si se va a trabajar local
 // const API_URL = "http://127.0.0.1:9000";
 

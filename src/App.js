@@ -131,6 +131,7 @@ function App() {
 				setMessages(updatedMessages);
 				setIsTyping(false);
 
+
 				//inhabilitate the input, after one second, show the colors in the questions, after
 				//second show a pop up, and after 3 seconds, show the next question
 				setDisabledInput(true)//inahbilitate the input temporarily
@@ -147,6 +148,7 @@ function App() {
 							icon: "success",
 							customClass: {
 								container: "font-text",
+
 							},
 							confirmButtonText: 'Next question',
 							cancelButtonText: 'End game'
