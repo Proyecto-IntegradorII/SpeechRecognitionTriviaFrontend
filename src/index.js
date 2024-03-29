@@ -20,6 +20,7 @@ root.render(
 					<Route path="/*" element={<Home />} />
 					<Route path="/register" element={<Register />} />
 					<Route path="/login" element={<Login />} />
+					<Route path="/leaderboard" element={<Login/>} />
 				</Route>
 			</Routes>
 		</ThemeProvider>

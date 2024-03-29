@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import myImage from "../../images/profile-default.jpg";
+import logoImage from '../../images/logo.png'; // Import your image
 
 import {
 	Navbar,
@@ -43,7 +44,7 @@ export default function StickyNavbar() {
 		<Navbar className="sticky top-0 z-10 h-max max-w-full rounded-none px-2 py-2 lg:px-12 lg:py-3">
 			<div className="flex items-center justify-between text-blue-gray-900">
 				<div className="flex items-center justify-between" onClick={() => navigate("/")}>
-					<img src="/images/studia.png" alt="StudIA Logo" className="w-24 h-auto cursor-pointer" />
+					<img src={logoImage} alt="Logo" className="w-14 h-auto cursor-pointer" />
 				</div>
 
 				<div>
