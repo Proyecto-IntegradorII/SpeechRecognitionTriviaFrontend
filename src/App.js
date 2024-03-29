@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import "./index.css";
 import MyAudioVisualaizer from "./pages/visualaizers/audio";
 import canvasImage from '../src/images/canvas.png'; // Import your image
+import Swal from "sweetalert2";
 
 const openai = new OpenAI({
 	apiKey: process.env.REACT_APP_GPT_KEY,
@@ -24,6 +25,7 @@ function App() {
 	const [showingNotificationDialog, setShowingNotificationDialog] = useState(false)
 	const [disabledInput, setDisabledInput] = useState(false);
 
+	const [questionsHistory, setQuestionHistory] = useState([])
 
 	useEffect(() => {
 		beginNewQuestion()
@@ -43,6 +45,8 @@ function App() {
 						En la key: question, el value será una pregunta, la pregunta que se le hará al usuario.
 						En las keys: optionA, optionB, optionC, optionD, tendran las opciones, una de ellas y solo una será la correcta.
 						En la key: answer, irá uno de los cuatro valores: A, B, C, D. Que indicará cual de las 4 opciones es la correcta.
+						Tambien quiero que retornes una pregunta diferente a las que ya has formulado antes, aqui esta el historial
+						de lo que ya se ha tenido y lo cual no se quiere que lo vuelvas a retornar: ${questionsHistory}.
 						Ejemplo de lo que quiero que retornes:
 						{
 							"question": "¿Cuando se descubrió america?",
@@ -59,11 +63,12 @@ function App() {
 			})
 			.then((response) => {
 				const data = JSON.parse(response.choices[0].message.content.replace(/\n/g, ''))
-				console.log(response.choices[0].message)
-				console.log(response.choices[0].message.content)
-				console.log(data)
-				setMachineQuestionsAndOptions(data);
+
+				setMachineQuestionsAndOptions(data);//current question and info
 				setIsTyping(false);
+
+				setQuestionHistory(...questionsHistory,JSON.stringify(data))
+
 			});
 	}
 	let instructions = {}
@@ -88,11 +93,13 @@ function App() {
 				Finalmente, en la key llamada question esta la pregunta que se le hizo al usuario,
 				en las key optionA, optionB, optionC, optionD estan las cuatro opcines dadas al usuario (A;B;C;D respectivamente)
 				y por ultimo, la key llamada answer contiene la respuesta de la pregunta. 
+				Tu trabajo tambien es determinar si la respuesta del usuario se refiere a la respuesta correcta.
 				Es importante que tu respuesta debe de ser similar a la respuesta que daria un presentador de un show, 
 				mas especificamente deberias responder como si estuvieras presentando quien quiere ser millonario.
+				No uses la palabra ganar o sus derivados como ganado, o ganaste.
 				Acontinuacion esta la informacion.
 				Aqui esta toda la info que necesitas:
-				${JSON.stringify(machineQuestionsAndOptions)}	
+				${JSON.stringify(machineQuestionsAndOptions)}.	
 				Esta es la respuesta del usuario: ${userResponse}.		`,
 			role: "assistant"
 		}
@@ -127,7 +134,49 @@ function App() {
 				//inhabilitate the input, after one second, show the colors in the questions, after
 				//second show a pop up, and after 3 seconds, show the next question
 				setDisabledInput(true)//inahbilitate the input temporarily
-				setShowingNotificationDialog(true)
+				if (
+					response.choices[0].message.content.includes('Felicidad') || 
+					response.choices[0].message.content.includes('felicidad') ||
+					response.choices[0].message.content.includes('Felicita') ||
+					response.choices[0].message.content.includes('felicita')) {
+					// Introduce a delay of 3 seconds
+					setTimeout(() => {
+						Swal.fire({
+							title: "Respuesta Correcta",
+							text: "Pasas a ganar: ",
+							icon: "success",
+							customClass: {
+								container: "font-text",
+							},
+							confirmButtonText: 'Next question',
+							cancelButtonText: 'End game'
+						}).then((result) => {
+							if (result.isConfirmed) {
+								setMachineQuestionsAndOptions({})//POSSIBLE BUG
+								beginNewQuestion()
+								setDisabledInput(false)//habilitate the input again
+								setMessages([])
+							} else {
+								window.location.href = '/leaderboard';
+							}
+						});
+					}, 3000)
+				} else {
+					// Introduce a delay of 3 seconds
+					setTimeout(() => {
+						Swal.fire({
+							title: "Perdiste",
+							text: "Terminaste el juego con: ",
+							icon: "error",
+							customClass: {
+								container: "font-text",
+							},
+							confirmButtonText: 'Go to leaderboard ->'
+						}).then((result) => {
+							window.location.href = '/leaderboard';
+						});
+					}, 3000)
+				}
 			});
 
 
@@ -202,7 +251,7 @@ function App() {
 						)}
 
 						<input
-							id = "input"
+							id="input"
 							type="text"
 							disabled={disabledInput}
 							placeholder="Presiona el mic para hablar"
