@@ -10,6 +10,8 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import Register from "./pages/home/Register";
 import Login from "./pages/home/Login";
+import Leaderboard from "./pages/home/LeaderBoard";
+import MyAudioVisualaizer from "./pages/visualaizers/audio";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -20,7 +22,8 @@ root.render(
 					<Route path="/*" element={<Home />} />
 					<Route path="/register" element={<Register />} />
 					<Route path="/login" element={<Login />} />
-					<Route path="/leaderboard" element={<Login/>} />
+					<Route path="/leaderboard" element={<Leaderboard/>} />
+					<Route path="/audio" element={<MyAudioVisualaizer/>} />
 				</Route>
 			</Routes>
 		</ThemeProvider>

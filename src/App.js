@@ -2,8 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import OpenAI from "openai";
 import "./index.css";
 import MyAudioVisualaizer from "./pages/visualaizers/audio";
+import Modal from 'react-modal'
 import canvasImage from '../src/images/canvas.png'; // Import your image
 import Swal from "sweetalert2";
+
+
 
 const openai = new OpenAI({
 	apiKey: process.env.REACT_APP_GPT_KEY,
@@ -17,6 +20,8 @@ function App() {
 
 	const [isTyping, setIsTyping] = useState(false);
 
+	const [score, setScore] = useState(0);
+
 	const optionADivRef = useRef(null)
 	const optionBDivRef = useRef(null)
 	const optionCDivRef = useRef(null)
@@ -27,9 +32,104 @@ function App() {
 
 	const [questionsHistory, setQuestionHistory] = useState([])
 
+	const [modalIsOpen, setModalIsOpen] = useState(false);
+
+	const handleRecordingStopped = () => {
+        closeModal(); // Cerrar modal cuando se para la grabación
+    };
+
+	const customStyles = {
+		overlay: {
+			backgroundColor: 'rgba(0, 0, 0, 0.5)' // Fondo oscurecido
+		},
+		content: {
+			top: '50%', // Posicionamiento vertical en la mitad de la pantalla
+			left: '50%', // Posicionamiento horizontal en la mitad de la pantalla
+			right: 'auto',
+			bottom: 'auto',
+			marginRight: '-50%', // Centrar el contenido horizontalmente
+			transform: 'translate(-50%, -50%)', // Centrar vertical y horizontalmente
+			width: '25rem', // Tamaño del modal
+			height: '25rem'
+		}
+	};
+
+	const openModal = () => {
+		setModalIsOpen(true);
+	}
+
+	const closeModal = () => {
+		setModalIsOpen(false);
+	}
+
 	useEffect(() => {
 		beginNewQuestion()
 	}, []);
+
+
+	async function getScoreFromServer(userId) {
+
+		try {
+			const response = await fetch('https://speech-recognition-trivia-backend.vercel.app/score', {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ user_id: userId }),
+			});
+
+			if (!response.ok) {
+				throw new Error('Error al obtener el puntaje del usuario');
+			}
+
+			const data = await response.json();
+			return data.puntaje;
+		} catch (error) {
+			console.error('Error en la solicitud para obtener el puntaje:', error);
+			// Manejar el error de acuerdo a tus necesidades
+		}
+	}
+
+	// Función para actualizar el puntaje del usuario en el servidor
+	async function updateScoreOnServer(newScore) {
+		try {
+			const response = await fetch('https://speech-recognition-trivia-backend.vercel.app/updatescore', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ score: newScore }),
+				// Aquí puedes agregar cualquier otro tipo de configuración de la solicitud, como tokens de autenticación
+			});
+
+			if (!response.ok) {
+				throw new Error('Error al actualizar el puntaje del usuario');
+			}
+
+			const data = await response.json();
+			if (data.success) {
+				console.log('Puntaje actualizado exitosamente en el servidor');
+			} else {
+				throw new Error('Error al actualizar el puntaje del usuario');
+			}
+		} catch (error) {
+			console.error('Error en la solicitud para actualizar el puntaje:', error);
+			// Manejar el error de acuerdo a tus necesidades
+		}
+	}
+
+	// Lógica para determinar el nuevo puntaje y actualizarlo en el servidor si es necesario
+	async function updateScoreIfNeeded(score) {
+		try {
+			const currentScore = await getScoreFromServer();
+			if (score > currentScore) {
+				await updateScoreOnServer(score);
+			}
+		} catch (error) {
+			console.error('Error en la actualización del puntaje:', error);
+			// Manejar el error de acuerdo a tus necesidades
+		}
+	}
 
 	//asks chatgpt for a json question, 4 options, and 1 answer
 	async function beginNewQuestion() {
@@ -67,7 +167,7 @@ function App() {
 				setMachineQuestionsAndOptions(data);//current question and info
 				setIsTyping(false);
 
-				setQuestionHistory(...questionsHistory,JSON.stringify(data))
+				setQuestionHistory(...questionsHistory, JSON.stringify(data))
 
 			});
 	}
@@ -131,20 +231,42 @@ function App() {
 				setMessages(updatedMessages);
 				setIsTyping(false);
 
-
 				//inhabilitate the input, after one second, show the colors in the questions, after
 				//second show a pop up, and after 3 seconds, show the next question
 				setDisabledInput(true)//inahbilitate the input temporarily
 				if (
-					response.choices[0].message.content.includes('Felicidad') || 
+					response.choices[0].message.content.includes('Felicidad') ||
 					response.choices[0].message.content.includes('felicidad') ||
 					response.choices[0].message.content.includes('Felicita') ||
 					response.choices[0].message.content.includes('felicita')) {
 					// Introduce a delay of 3 seconds
+
+					let newScore = score
+					if (score === 0) {
+						console.log("jejeje")
+						newScore = score + 1500000;
+					}
+					else if (score === 1500000) {
+						newScore = score + 2000000
+					}
+					else {
+						newScore = score + 2500000
+						const userId = localStorage.getItem("id");
+						if (userId) {
+							updateScoreOnServer(newScore);
+						}
+					}
+
+					setScore(newScore);
+
+					console.log(score);
 					setTimeout(() => {
+
+
+
 						Swal.fire({
 							title: "Respuesta Correcta",
-							text: "Pasas a ganar: ",
+							text: `Pasas a ganar: $${newScore}`,
 							icon: "success",
 							customClass: {
 								container: "font-text",
@@ -164,6 +286,10 @@ function App() {
 						});
 					}, 3000)
 				} else {
+					/*	const userId = localStorage.getItem("id");
+							if (userId) {
+								updateScoreIfNeeded(score);
+							}*/
 					// Introduce a delay of 3 seconds
 					setTimeout(() => {
 						Swal.fire({
@@ -180,8 +306,6 @@ function App() {
 					}, 3000)
 				}
 			});
-
-
 	};
 
 	return (
@@ -241,9 +365,6 @@ function App() {
 					</div>
 				</div>
 
-
-
-
 				<form className="form-control xl:w-[800px] md:w-full sm:w-full m-5 items-center bg-white" onSubmit={(e) => handleSubmit(e)}>
 					<div className="input-group max-w-full xl:w-[800px] md:w-full sm:w-full relative ">
 						{isTyping && (
@@ -275,15 +396,9 @@ function App() {
 								<path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z" />
 							</svg>
 						</button>
-						<button id="microphone" className="btn btn-square" type="submit" style={{ border: 'none' }}>
-							<svg width="30px" height="30px" viewBox="-7.2 0 30 30" id="_19_-_Microphone" data-name="19 - Microphone" xmlns="http://www.w3.org/2000/svg">
-								<path id="Path_254" data-name="Path 254" d="M21.182,4a3,3,0,0,0-3-3H13.818a3,3,0,0,0-3,3V22.038a3,3,0,0,0,3,3h4.364a3,3,0,0,0,3-3Zm-2,0V22.038a1,1,0,0,1-1,1H13.818a1,1,0,0,1-1-1V4a1,1,0,0,1,1-1h4.364a1,1,0,0,1,1,1Z" transform="translate(-8.2 -1)" fillRule="evenodd" />
-								<path id="Path_255" data-name="Path 255" d="M8.2,17.186V21.7a5.779,5.779,0,0,0,5.533,5.992h4.534A5.779,5.779,0,0,0,23.8,21.7V17.186a1,1,0,0,0-2,0V21.7a3.781,3.781,0,0,1-3.533,3.992H13.733A3.781,3.781,0,0,1,10.2,21.7V17.186a1,1,0,0,0-2,0Z" transform="translate(-8.2 -1)" fillRule="evenodd" />
-								<path id="Path_256" data-name="Path 256" d="M20.182,29H11.818a1,1,0,1,0,0,2h8.364a1,1,0,0,0,0-2Z" transform="translate(-8.2 -1)" fillRule="evenodd" />
-								<path id="Path_257" data-name="Path 257" d="M15,26.691V30a1,1,0,0,0,2,0V26.691a1,1,0,0,0-2,0Z" transform="translate(-8.2 -1)" fillRule="evenodd" />
-							</svg>
 
-						</button>
+						<MyAudioVisualaizer/>
+
 					</div>
 				</form>
 			</div>
