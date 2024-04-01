@@ -67,15 +67,16 @@ function App() {
 	}, []);
 
 
-	async function getScoreFromServer(userId) {
+	async function getScoreFromServer() {
+
+		const userId = localStorage.getItem("id");
 
 		try {
-			const response = await fetch('https://speech-recognition-trivia-backend.vercel.app/score', {
+			const response = await fetch(`https://speech-recognition-trivia-backend.vercel.app/score/${userId}`, {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ user_id: userId }),
 			});
 
 			if (!response.ok) {
@@ -127,6 +128,8 @@ function App() {
 			const currentScore = await getScoreFromServer();
 			if (score > currentScore) {
 				await updateScoreOnServer(score);
+			} else {
+				console.log("el puntaje es mas bajo que en bd")
 			}
 		} catch (error) {
 			console.error('Error en la actualización del puntaje:', error);
@@ -248,17 +251,16 @@ function App() {
 					if (score === 0) {
 						console.log("jejeje")
 						newScore = score + 1500000;
-						const userId = localStorage.getItem("id");
-						if (userId) {
-							updateScoreOnServer(newScore);
-						}
 					}
 					else if (score === 1500000) {
 						newScore = score + 2000000
 					}
 					else {
 						newScore = score + 2500000
-						
+						const userId = localStorage.getItem("id");
+						if (userId) {
+							updateScoreOnServer(newScore);
+						}
 					}
 
 					setScore(newScore);
@@ -290,10 +292,10 @@ function App() {
 						});
 					}, 3000)
 				} else {
-					/*	const userId = localStorage.getItem("id");
+						const userId = localStorage.getItem("id");
 							if (userId) {
 								updateScoreIfNeeded(score);
-							}*/
+							}
 					// Introduce a delay of 3 seconds
 					setTimeout(() => {
 						Swal.fire({
