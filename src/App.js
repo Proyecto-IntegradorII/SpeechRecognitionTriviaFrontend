@@ -92,13 +92,16 @@ function App() {
 
 	// Función para actualizar el puntaje del usuario en el servidor
 	async function updateScoreOnServer(newScore) {
+
+		const userId = localStorage.getItem("id");
+
 		try {
 			const response = await fetch('https://speech-recognition-trivia-backend.vercel.app/updatescore', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ score: newScore }),
+				body: JSON.stringify({user_id: userId, score: newScore }),
 				// Aquí puedes agregar cualquier otro tipo de configuración de la solicitud, como tokens de autenticación
 			});
 
@@ -245,16 +248,17 @@ function App() {
 					if (score === 0) {
 						console.log("jejeje")
 						newScore = score + 1500000;
+						const userId = localStorage.getItem("id");
+						if (userId) {
+							updateScoreOnServer(newScore);
+						}
 					}
 					else if (score === 1500000) {
 						newScore = score + 2000000
 					}
 					else {
 						newScore = score + 2500000
-						const userId = localStorage.getItem("id");
-						if (userId) {
-							updateScoreOnServer(newScore);
-						}
+						
 					}
 
 					setScore(newScore);
