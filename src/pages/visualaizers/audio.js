@@ -57,9 +57,37 @@ const MyAudioVisualaizer = () => {
         }
     };
 
+    // Function to upload audio
+    const uploadAudio = async () => {
+        if (audioBlob) {
+            try {
+                //const formData = new FormData();
+                //formData.append('audio', audioBlob, 'recorded_audio.wav');
+
+                const response = await fetch('http://localhost:9000/upload', {
+                    method: 'POST',
+                    body: {file:audioBlob},
+                    headers: {
+                        'Content-Type': 'audio/wav' // Adjust the content type based on your audio format
+                    }
+                });
+
+                if (response.ok) {
+                    console.log(response);
+                    setAudioBlob(null); // Reset audioBlob state after uploading
+                } else {
+                    console.error('Error uploading audio:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error uploading audio:', error);
+            }
+        }
+    };
+
+
     useEffect(() => {
         if (audioBlob) {
-            downloadAudio();
+            uploadAudio();
         }
     }, [audioBlob]);
 
