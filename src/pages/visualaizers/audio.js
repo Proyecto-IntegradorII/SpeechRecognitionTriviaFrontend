@@ -76,6 +76,24 @@ const uploadAudio = async () => {
 
             // Log downloadLink to the console
             console.log('Download Link:', data);
+
+            // Make POST request to your backend
+            const transcriptResponse = await fetch('https://pybackoci-latest.onrender.com/transcribe_file', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    "file_url": data
+                })
+            });
+            
+            // Parse response as JSON
+            const transcriptResponseEnded = await transcriptResponse.json();
+
+            console.log("transcript respond to audio: ",transcriptResponseEnded)
+            var element = document.getElementById("input");
+            element.value = transcriptResponseEnded[1];
         }
     } catch (error) {
         console.error('Error uploading audio:', error);
