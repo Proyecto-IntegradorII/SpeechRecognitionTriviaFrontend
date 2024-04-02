@@ -58,31 +58,29 @@ const MyAudioVisualaizer = () => {
     };
 
     // Function to upload audio
-    const uploadAudio = async () => {
+const uploadAudio = async () => {
+    try {
         if (audioBlob) {
-            try {
-                //const formData = new FormData();
-                //formData.append('audio', audioBlob, 'recorded_audio.wav');
+            // Create form data
+            const formData = new FormData();
+            formData.append('file', audioBlob);
 
-                const response = await fetch('http://localhost:9000/upload', {
-                    method: 'POST',
-                    body: {file:audioBlob},
-                    headers: {
-                        'Content-Type': 'audio/wav' // Adjust the content type based on your audio format
-                    }
-                });
+            // Make POST request to your backend
+            const response = await fetch('https://speech-recognition-trivia-backend.vercel.app/upload', {
+                method: 'POST',
+                body: formData,
+            });
 
-                if (response.ok) {
-                    console.log(response);
-                    setAudioBlob(null); // Reset audioBlob state after uploading
-                } else {
-                    console.error('Error uploading audio:', response.statusText);
-                }
-            } catch (error) {
-                console.error('Error uploading audio:', error);
-            }
+            // Parse response as JSON
+            const data = await response.json();
+
+            // Log downloadLink to the console
+            console.log('Download Link:', data);
         }
-    };
+    } catch (error) {
+        console.error('Error uploading audio:', error);
+    }
+};
 
 
     useEffect(() => {
